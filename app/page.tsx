@@ -9,6 +9,7 @@ type Message = {
 };
 
 export default function WikiBot() {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "bot",
@@ -23,7 +24,7 @@ export default function WikiBot() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
-   const userMessage: Message = { role: "user", text: input, wikiLink: "", wikiTitle: "" };
+    const userMessage: Message = { role: "user", text: input, wikiLink: "", wikiTitle: "" };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
@@ -46,7 +47,7 @@ export default function WikiBot() {
           wikiTitle: data.wikiTitle,
         },
       ]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -61,74 +62,183 @@ export default function WikiBot() {
     setLoading(false);
   };
 
- const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") sendMessage();
   };
 
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto", padding: "20px", fontFamily: "sans-serif" }}>
-      <h1 style={{ fontSize: 22, marginBottom: 4 }}>WikiBot</h1>
-      <p style={{ fontSize: 13, color: "#666", marginBottom: 20 }}>
-        Answers sourced exclusively from Wikipedia
-      </p>
+    <>
+      {/* POPUP CHAT WINDOW */}
+      {isOpen && (
+        <div style={{
+          position: "fixed",
+          bottom: 90,
+          right: 24,
+          width: 360,
+          height: 500,
+          background: "#1e1e2e",
+          borderRadius: 16,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          zIndex: 9999,
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}>
 
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: 12, overflow: "hidden" }}>
-        {/* Messages */}
-        <div style={{ height: 420, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: "#fafafa" }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+          {/* HEADER */}
+          <div style={{
+            background: "#185FA5",
+            padding: "12px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
-                maxWidth: "75%",
-                padding: "10px 14px",
-                borderRadius: msg.role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
-                background: msg.role === "user" ? "#185FA5" : "#fff",
-                color: msg.role === "user" ? "#fff" : "#1a1a1a",
-                fontSize: 13,
-                lineHeight: 1.6,
-                border: msg.role === "bot" ? "1px solid #e8e8e8" : "none",
+                width: 32, height: 32, borderRadius: "50%",
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 16,
+              }}>🤖</div>
+              <div>
+                <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>WikiBot</div>
+                <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10 }}>Powered by Wikipedia</div>
+              </div>
+            </div>
+            <button onClick={() => setIsOpen(false)} style={{
+              background: "none", border: "none", color: "rgba(255,255,255,0.7)",
+              fontSize: 20, cursor: "pointer", lineHeight: 1,
+            }}>×</button>
+          </div>
+
+          {/* MESSAGES */}
+          <div style={{
+            flex: 1, overflowY: "auto", padding: 14,
+            display: "flex", flexDirection: "column", gap: 10,
+            background: "#13131f",
+          }}>
+            {messages.map((msg, i) => (
+              <div key={i} style={{
+                display: "flex",
+                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
               }}>
-                {msg.text}
-                {msg.wikiLink && (
-                  <div style={{ marginTop: 8 }}>
-                    <a href={msg.wikiLink} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 11, color: "#185FA5", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, background: "#EAF2FF", padding: "3px 8px", borderRadius: 4 }}>
-                      📖 {msg.wikiTitle} — Wikipedia
-                    </a>
-                  </div>
-                )}
+                <div style={{
+                  maxWidth: "80%",
+                  padding: "9px 12px",
+                  borderRadius: msg.role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
+                  background: msg.role === "user" ? "#185FA5" : "rgba(255,255,255,0.07)",
+                  color: "#fff",
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  border: msg.role === "bot" ? "1px solid rgba(255,255,255,0.08)" : "none",
+                }}>
+                  {msg.text}
+                  {msg.wikiLink && (
+                    <div style={{ marginTop: 7 }}>
+                      <a href={msg.wikiLink} target="_blank" rel="noopener noreferrer" style={{
+                        fontSize: 10, color: "#85B7EB", textDecoration: "none",
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        background: "rgba(55,138,221,0.12)", padding: "3px 7px",
+                        borderRadius: 4, border: "1px solid rgba(55,138,221,0.2)",
+                      }}>
+                        📖 {msg.wikiTitle} — Wikipedia
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <div style={{ padding: "10px 14px", background: "#fff", border: "1px solid #e8e8e8", borderRadius: "12px 12px 12px 3px", fontSize: 13, color: "#999" }}>
-                WikiBot is thinking...
+            ))}
+            {loading && (
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <div style={{
+                  padding: "9px 12px", background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px 12px 12px 3px", fontSize: 12, color: "rgba(255,255,255,0.4)",
+                }}>
+                  WikiBot is thinking...
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Input */}
-        <div style={{ display: "flex", gap: 8, padding: 12, borderTop: "1px solid #e8e8e8", background: "#fff" }}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask a technology question..."
-            style={{ flex: 1, padding: "10px 14px", border: "1px solid #e0e0e0", borderRadius: 8, fontSize: 13, outline: "none" }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={loading}
-            style={{ padding: "10px 18px", background: "#185FA5", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>
-            Send
-          </button>
+          {/* INPUT */}
+          <div style={{
+            padding: "10px 12px",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            background: "#1e1e2e",
+            display: "flex", gap: 8,
+          }}>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask a tech question..."
+              style={{
+                flex: 1, padding: "8px 12px",
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 8, fontSize: 12, color: "#fff", outline: "none",
+              }}
+            />
+            <button onClick={sendMessage} disabled={loading} style={{
+              padding: "8px 14px", background: "#185FA5",
+              color: "#fff", border: "none", borderRadius: 8,
+              fontSize: 12, cursor: "pointer",
+            }}>
+              Send
+            </button>
+          </div>
+
+          {/* DISCLAIMER */}
+          <div style={{
+            textAlign: "center", fontSize: 9,
+            color: "rgba(255,255,255,0.2)", padding: "5px 12px 8px",
+            background: "#1e1e2e",
+          }}>
+            Answers sourced exclusively from Wikipedia
+          </div>
         </div>
+      )}
+
+      {/* FLOATING BUBBLE */}
+      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 99999 }}>
+        {/* TOOLTIP */}
+        {!isOpen && (
+          <div style={{
+            position: "absolute", bottom: 54, right: 0,
+            background: "#185FA5", color: "#fff",
+            fontSize: 10, padding: "5px 10px",
+            borderRadius: "8px 8px 0px 8px",
+            whiteSpace: "nowrap",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}>
+            Ask WikiBot anything ✨
+          </div>
+        )}
+
+        {/* BUBBLE BUTTON */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            width: 52, height: 52, borderRadius: "50%",
+            background: "#185FA5",
+            border: "2px solid rgba(255,255,255,0.3)",
+            cursor: "pointer", fontSize: 22,
+            boxShadow: "0 4px 20px rgba(24,95,165,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+          {isOpen ? "×" : "🤖"}
+        </button>
+
+        {/* ONLINE DOT */}
+        <div style={{
+          position: "absolute", top: 2, right: 2,
+          width: 11, height: 11, borderRadius: "50%",
+          background: "#22c55e",
+          border: "2px solid #fff",
+        }} />
       </div>
-
-      <p style={{ fontSize: 10, color: "#aaa", textAlign: "center", marginTop: 10 }}>
-        WikiBot answers are sourced exclusively from Wikipedia. Always verify important information.
-      </p>
-    </div>
+    </>
   );
 }
