@@ -1,8 +1,19 @@
-import Groq from "groq-sdk";
+import Groq from "groq-sdk"
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
-});
+})
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  })
+}
 
 export async function POST(request) {
   const { question } = await request.json();
@@ -42,13 +53,16 @@ export async function POST(request) {
   }
 
   if (!wikiContent) {
-    return Response.json({
-      answer:
-        "I couldn't find an answer to that on Wikipedia. Try rephrasing your question or asking something more specific.",
-      wikiLink: "",
-      wikiTitle: "",
-    });
-  }
+    return Response.json(
+      { answer: "I couldn't find an answer to that on Wikipedia. Try rephrasing your question or asking something more specific.", wikiLink: "", wikiTitle: "" },
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      }
+    )
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
@@ -67,9 +81,14 @@ export async function POST(request) {
 
   const answer = completion.choices[0]?.message?.content || "I couldn't generate an answer. Please try again.";
 
-  return Response.json({
-    answer,
-    wikiLink,
-    wikiTitle,
-  });
-}
+  return Response.json(
+    { answer, wikiLink, wikiTitle },
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    }
+  )
+
