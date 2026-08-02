@@ -26,7 +26,7 @@ export async function POST(request) {
 
     try {
         // First try direct summary lookup
-        const searchUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(question)}`
+        const searchUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(question.split("?")[0].replace(/^(how|what|why|when|where|who|do|does|did|is|are|was|were)\s+/i, "").trim())}`
         const wikiResponse = await fetch(searchUrl)
         const wikiData = await wikiResponse.json()
 
@@ -68,7 +68,7 @@ export async function POST(request) {
 
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "gemma2-9b-it",
             messages: [
                 {
                     role: "system",
