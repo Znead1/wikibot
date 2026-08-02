@@ -24,32 +24,21 @@ export async function POST(request) {
     let wikiLink = ""
     let wikiTitle = ""
 
-    try {
-        // First try direct summary lookup
-        const searchUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(question.split("?")[0].replace(/^(how|what|why|when|where|who|do|does|did|is|are|was|were)\s+/i, "").trim())}`
-        const wikiResponse = await fetch(searchUrl)
-        const wikiData = await wikiResponse.json()
+   try {
+        // Always use search first — more reliable than direct lookup
+        const searchFallback = await fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=3`
+        )
+        const searchData = await searchFallback.json()
+        const firstResult = searchData?.query?.search?.[0]
 
-        if (wikiData.extract) {
-            wikiContent = wikiData.extract
-            wikiLink = wikiData.content_urls?.desktop?.page || ""
-            wikiTitle = wikiData.title || ""
-        } else {
-            // Fall back to search
-            const searchFallback = await fetch(
-                `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*`
-            )
-            const searchData = await searchFallback.json()
-            const firstResult = searchData?.query?.search?.[0]
-
-            if (firstResult) {
-                const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstResult.title)}`
-                const pageResponse = await fetch(pageUrl)
-                const pageData = await pageResponse.json()
-                wikiContent = pageData.extract || ""
-                wikiLink = pageData.content_urls?.desktop?.page || ""
-                wikiTitle = pageData.title || ""
-            }
+        if (firstResult) {
+            const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstResult.title)}`
+            const pageResponse = await fetch(pageUrl)
+            const pageData = await pageResponse.json()
+            wikiContent = pageData.extract || ""
+            wikiLink = pageData.content_urls?.desktop?.page || ""
+            wikiTitle = pageData.title || ""
         }
     } catch (error) {
         console.error("Wikipedia fetch error:", error)
