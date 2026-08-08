@@ -23,42 +23,27 @@ export default function WikiBot() {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-
     const userMessage: Message = { role: "user", text: input, wikiLink: "", wikiTitle: "" };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-
     try {
       const response = await fetch("/api/wikibot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: input }),
       });
-
       const data = await response.json();
-
       setMessages((prev) => [
         ...prev,
-        {
-          role: "bot",
-          text: data.answer,
-          wikiLink: data.wikiLink,
-          wikiTitle: data.wikiTitle,
-        },
+        { role: "bot", text: data.answer, wikiLink: data.wikiLink, wikiTitle: data.wikiTitle },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "bot",
-          text: "Something went wrong. Please try again.",
-          wikiLink: "",
-          wikiTitle: "",
-        },
+        { role: "bot", text: "Something went wrong. Please try again.", wikiLink: "", wikiTitle: "" },
       ]);
     }
-
     setLoading(false);
   };
 
@@ -67,23 +52,35 @@ export default function WikiBot() {
   };
 
   return (
-    <>
+    <div style={{
+      position: "fixed",
+      bottom: 0,
+      right: 0,
+      width: isOpen ? 380 : 80,
+      height: isOpen ? 520 : 80,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-end",
+      justifyContent: "flex-end",
+      fontFamily: "sans-serif",
+      background: "transparent",
+      overflow: "hidden",
+      transition: "width 0.3s ease, height 0.3s ease",
+    }}>
+
       {/* POPUP CHAT WINDOW */}
       {isOpen && (
         <div style={{
-          position: "fixed",
-          bottom: 90,
-          right: 24,
           width: 360,
-          height: 500,
+          height: 460,
           background: "#1e1e2e",
-          borderRadius: 16,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+          borderRadius: "16px 16px 0px 0px",
+          boxShadow: "0 -4px 30px rgba(0,0,0,0.3)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          zIndex: 9999,
           border: "1px solid rgba(255,255,255,0.1)",
+          marginBottom: 0,
         }}>
 
           {/* HEADER */}
@@ -190,7 +187,6 @@ export default function WikiBot() {
             </button>
           </div>
 
-          {/* DISCLAIMER */}
           <div style={{
             textAlign: "center", fontSize: 9,
             color: "rgba(255,255,255,0.2)", padding: "5px 12px 8px",
@@ -201,14 +197,25 @@ export default function WikiBot() {
         </div>
       )}
 
-      {/* FLOATING BUBBLE */}
-      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 99999 }}>
-        {/* TOOLTIP */}
+      {/* BUBBLE BUTTON ROW */}
+      <div style={{
+        width: 80,
+        height: 80,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        flexShrink: 0,
+      }}>
         {!isOpen && (
           <div style={{
-            position: "absolute", bottom: 54, right: 0,
-            background: "#185FA5", color: "#fff",
-            fontSize: 10, padding: "5px 10px",
+            position: "absolute",
+            bottom: 64,
+            right: 8,
+            background: "#185FA5",
+            color: "#fff",
+            fontSize: 10,
+            padding: "5px 10px",
             borderRadius: "8px 8px 0px 8px",
             whiteSpace: "nowrap",
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
@@ -216,8 +223,6 @@ export default function WikiBot() {
             Ask WikiBot anything ✨
           </div>
         )}
-
-        {/* BUBBLE BUTTON */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           style={{
@@ -230,15 +235,13 @@ export default function WikiBot() {
           }}>
           {isOpen ? "×" : "🤖"}
         </button>
-
-        {/* ONLINE DOT */}
         <div style={{
-          position: "absolute", top: 2, right: 2,
+          position: "absolute", top: 12, right: 12,
           width: 11, height: 11, borderRadius: "50%",
           background: "#22c55e",
           border: "2px solid #fff",
         }} />
       </div>
-    </>
+    </div>
   );
 }
