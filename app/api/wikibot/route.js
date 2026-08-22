@@ -24,10 +24,15 @@ export async function POST(request) {
     let wikiLink = ""
     let wikiTitle = ""
 
-   try {
-        // Always use search first — more reliable than direct lookup
-     const searchFallback = await fetch(
-   `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=5&srnamespace=0&srwhat=text`
+       try {
+        // Clean question to extract core topic
+        const cleanQuery = question
+            .replace(/^(how do|how does|how did|how can|what is|what are|what was|why do|why does|why did|when did|when was|where is|who is|who was|tell me about|explain|describe)\s+/i, "")
+            .replace(/\?$/, "")
+            .trim()
+
+        const searchFallback = await fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*&srlimit=5&srnamespace=0`,
     {
         headers: {
             "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
