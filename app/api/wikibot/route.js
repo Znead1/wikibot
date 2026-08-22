@@ -27,7 +27,7 @@ export async function POST(request) {
    try {
         // Always use search first — more reliable than direct lookup
      const searchFallback = await fetch(
-    `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=3`,
+   `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=5&srnamespace=0&srwhat=text`
     {
         headers: {
             "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
