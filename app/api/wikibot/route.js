@@ -25,9 +25,11 @@ export async function POST(request) {
     let wikiTitle = ""
 
     try {
-        const cleanQuery = question
+                const cleanQuery = question
             .replace(/^(how do|how does|how did|how can|what is|what are|what was|why do|why does|why did|when did|when was|where is|who is|who was|tell me about|explain|describe)\s+/i, "")
             .replace(/\?$/, "")
+            .replace(/\b(work|works|function|functions|generate|generates|produce|produces|make|makes|happen|happens)\b/gi, "")
+            .replace(/\s+/g, " ")
             .trim()
 
         const searchFallback = await fetch(
