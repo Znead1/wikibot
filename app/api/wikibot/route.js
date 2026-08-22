@@ -24,8 +24,7 @@ export async function POST(request) {
     let wikiLink = ""
     let wikiTitle = ""
 
-       try {
-        // Clean question to extract core topic
+    try {
         const cleanQuery = question
             .replace(/^(how do|how does|how did|how can|what is|what are|what was|why do|why does|why did|when did|when was|where is|who is|who was|tell me about|explain|describe)\s+/i, "")
             .replace(/\?$/, "")
@@ -33,28 +32,32 @@ export async function POST(request) {
 
         const searchFallback = await fetch(
             `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*&srlimit=5&srnamespace=0`,
-    {
-        headers: {
-            "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
-            "Accept": "application/json",
-        }
-    }
-)
+            {
+                headers: {
+                    "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
+                    "Accept": "application/json",
+                }
+            }
+        )
         const searchData = await searchFallback.json()
-        const firstResult = searchData?.query?.search?.[0]
+        const results = searchData?.query?.search || []
 
-        if (firstResult) {
-            const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstResult.title)}`
-           const pageResponse = await fetch(pageUrl, {
-    headers: {
-        "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
-        "Accept": "application/json",
-    }
-})
+        for (const result of results) {
+            const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(result.title)}`
+            const pageResponse = await fetch(pageUrl, {
+                headers: {
+                    "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
+                    "Accept": "application/json",
+                }
+            })
             const pageData = await pageResponse.json()
-            wikiContent = pageData.extract || ""
-            wikiLink = pageData.content_urls?.desktop?.page || ""
-            wikiTitle = pageData.title || ""
+
+            if (pageData.extract && pageData.extract.length > 200 && pageData.type !== "disambiguation") {
+                wikiContent = pageData.extract
+                wikiLink = pageData.content_urls?.desktop?.page || ""
+                wikiTitle = pageData.title || ""
+                break
+            }
         }
     } catch (error) {
         console.error("Wikipedia fetch error:", error)
@@ -77,8 +80,7 @@ export async function POST(request) {
             messages: [
                 {
                     role: "system",
-                    content:
-                        "You are WikiBot, a helpful assistant that only answers using Wikipedia content provided to you. Always answer in 3-5 clear plain English sentences. Never add information not in the Wikipedia content provided.",
+                    content: "You are WikiBot, a helpful assistant that only answers using Wikipedia content provided to you. Always answer in 3-5 clear plain English sentences. Never add information not in the Wikipedia content provided.",
                 },
                 {
                     role: "user",
@@ -87,9 +89,7 @@ export async function POST(request) {
             ],
         })
 
-        const answer =
-            completion.choices[0]?.message?.content ||
-            "I couldn't generate an answer. Please try again."
+        const answer = completion.choices[0]?.message?.content || "I couldn't generate an answer. Please try again."
 
         return Response.json(
             { answer, wikiLink, wikiTitle },
