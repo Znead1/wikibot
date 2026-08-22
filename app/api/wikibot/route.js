@@ -26,15 +26,26 @@ export async function POST(request) {
 
    try {
         // Always use search first — more reliable than direct lookup
-        const searchFallback = await fetch(
-            `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=3`
-        )
+     const searchFallback = await fetch(
+    `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*&srlimit=3`,
+    {
+        headers: {
+            "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
+            "Accept": "application/json",
+        }
+    }
+)
         const searchData = await searchFallback.json()
         const firstResult = searchData?.query?.search?.[0]
 
         if (firstResult) {
             const pageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstResult.title)}`
-            const pageResponse = await fetch(pageUrl)
+           const pageResponse = await fetch(pageUrl, {
+    headers: {
+        "User-Agent": "TechExplained/1.0 (https://wikibot-rho.vercel.app; znead@hotmail.com) WikiBot/1.0",
+        "Accept": "application/json",
+    }
+})
             const pageData = await pageResponse.json()
             wikiContent = pageData.extract || ""
             wikiLink = pageData.content_urls?.desktop?.page || ""
